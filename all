@@ -1,0 +1,831 @@
+// 1a===================================
+%{
+#include<stdio.h>
+int v=0,op=0,id=0,flag=0;
+%}
+%%
+[a-zA-Z]+[0-9A-Za-z]* {id++;printf("\n Identifier:");ECHO;}
+[\+\-\*\/\=] {op++;printf("\n Operartor:");ECHO;}
+"(" {v++;}
+")" {v--;}
+";" {flag=1;}
+.|\n {;}
+%%
+main()
+{
+ printf("Enter the expression");
+ yylex();
+ if((op+1) ==id && v==0 && flag==0)
+ printf("\n Expression is Valid\n");
+ else
+ printf("\n Expression is Invalid\n");
+}
+// 1b========================================
+%{
+#include "y.tab.h"
+extern yylval;
+%}
+%%
+[0-9]+ {yylval=atoi(yytext);return num;} 
+[\+\-\*\/] {return yytext[0];}
+[)] {return yytext[0];}
+[(] {return yytext[0];}
+. {;}
+\n {return 0;}
+%%
+------------YACC Part----------
+%{
+#include<stdio.h>
+#include<stdlib.h>
+%}
+%token num
+%left '+' '-'
+%left '*' '/'
+%%
+input:exp {printf("%d\n",$$);exit(0);}
+exp:exp'+'exp {$$=$1+$3;}
+|exp'-'exp{$$=$1-$3;}
+|exp'*'exp{$$=$1*$3;}
+|exp'/'exp { if($3==0){printf("Divide by Zero\n");exit(0);}else $$=$1/$3;}
+|'('exp')'{$$=$2;}
+|num{$$=$1;};
+%%
+int yyerror()
+{
+printf("error");
+exit(0);
+} 
+
+int main()
+{
+printf("Enter an expression:\n");
+yyparse();
+}
+// 2==========================================
+****LEX PART****
+%{
+#include "y.tab.h"
+%}
+%%
+a {return A;}
+b {return B;}
+. {printf("unsuccesful");exit(0);}
+[\n] return '\n';
+%%
+****YACC PART****
+%{
+#include<stdio.h>
+#include<stdlib.h>
+%}
+%token A B
+%%
+input:s'\n'{printf("successful grammar\n");exit (0);}
+s: A s1 B | B
+s1:;|A s1
+%%
+yywrap(){}
+main()
+{
+	printf(" Enter a string\n");
+	yyparse();
+}
+int yyerror()
+{
+	printf("Error\n");
+	exit(0);
+}
+// 3=====================================================
+#include<stdio.h>
+#include<string.h>
+#include<stdio.h>
+char ip[20],stack[20];
+int main()
+{
+	char m[2][3][10]={{"aBa","E","E"},{"n","bB","E"}};
+	int size[2][3]={3,1,1,1,2,1};
+	int i,j,row,col,k,n;
+	printf("\nEnter the input string :");
+	scanf("%s",ip);
+	strcat(ip,"$");
+	n=strlen(ip);
+	stack[0]='$';
+	stack[1]='A';
+	i=1;
+	j=0;
+	printf("\nStack\t\tInput\n");
+	printf("________\t________\n");
+	while((stack[i]!='$')&&(ip[j]!='$'))
+	{
+		if(stack[i]==ip[j])
+		{
+			i--;
+			j++;
+			continue;
+		}
+		switch(stack[i])
+		{
+			case 'A':row=0;
+				break;
+			case 'B':row=1;
+				break;
+		}
+		switch(ip[j])
+		{
+			case 'a':col=0;
+				break;
+			case 'b':col=1;
+				break;
+			case '$':col=2;
+				break;
+		}
+		if(m[row][col][0]=='E')
+		{
+			printf("\nError");
+			exit(0);
+		}
+		else if(m[row][col][0]=='n')
+			i--;
+		else if(m[row][col][0]==ip[j])
+		{
+			for(k=size[row][col]-1;k>=0;k--)
+			{
+				stack[i]=m[row][col][k];
+				i++;
+			}
+			i--;
+		}
+		else
+		{
+			printf("\nError");
+			exit(0);
+		}
+		for(k=0;k<=i;k++)
+			printf("%c",stack[k]);
+		printf("\t\t");
+		for(k=j;k<=n;k++)
+			printf("%c",ip[k]);
+		printf("\n");
+	}
+	for(k=0;k<=i;k++)
+		printf("%c",stack[k]);
+	printf("\t\t");
+	for(k=j;k<=n;k++)
+		printf("%c",ip[k]);
+	printf("\n");
+	if((stack[i]=='$')&&(ip[j]=='$'))
+		printf("\nSuccess\n\n");
+	else
+		printf("\nError\n");
+	return 0;
+}
+// 4=================================================
+#include<stdio.h> 
+#include<string.h> 
+int k=0,z=0,i=0,j=0,c=0; char a[16],ac[20],stk[15],act[10]; 
+void check(); 
+int main()    
+{       
+	puts("GRAMMAR is E->E+T \n T->T*F \n F->(E) \n F->id");       
+	puts("enter input string ");       
+	gets(a);       
+	c=strlen(a);       
+	strcpy(act,"SHIFT->");       
+	puts("stack \t input \t action");       
+	for(k=0,i=0; j<c; k++,i++,j++)        
+	{          
+		if(a[j]=='i' && a[j+1]=='d')            
+		{              
+			printf("\n$%s\t%s$\t%sid",stk,a,act);
+			stk[i]=a[j];               
+			stk[i+1]=a[j+1];               
+			stk[i+2]='\0';               
+			a[j]=' ';               
+			a[j+1]=' ';               
+			               
+			check();            
+			}          
+			else            
+			{               
+				stk[i]=a[j];               
+				stk[i+1]='\0';               
+				a[j]=' ';                          
+				check();            
+				}        
+		}    
+} 
+void check()
+{
+	strcpy(ac,"REDUCE");
+	for(z=0;z<c;z++)
+		if(stk[z]=='(' && stk[z+1]=='E' && stk[z+2]==')')
+		{
+			stk[z]='F';
+			stk[z+1]='\0';
+			stk[z+2]='\0';
+			printf("\n$%s\t%s$\t%s",stk,a,ac);
+			i=i-2;
+		}
+	for(z=0;z<c;z++)
+		if(stk[z]=='i' && stk[z+1]=='d')
+		{
+			
+			printf("\n$%s\t%s$\t%s",stk,a,ac);
+			stk[z]='F';
+			stk[z+1]='\0';
+			printf("\n$%s\t%s$\t%s",stk,a,ac);
+			j++;
+		}
+	for(z=0;z<c;z++)
+	{
+		if(stk[z]=='T' && stk[z+1]=='*' && stk[z+2]=='F')
+		{
+			stk[z]='T';
+			stk[z+1]='\0';
+			stk[z+2]='\0';
+			printf("\n$%s\t%s$\t%s",stk,a,ac);
+			i=i-2;
+		}
+		else if(stk[z]=='F')
+		{
+			stk[z]='T';
+			if(a[j+1]!='*')
+			printf("\n$%s\t%s$\t%s",stk,a,ac);
+			else
+			printf("\n$%s\t%s$\t%ssymbol",stk,a,act);
+		}
+	}
+	for(z=0;z<c;z++)
+	{
+		if(stk[z]=='E' && stk[z+1]=='+' && stk[z+2]=='T' && stk[z+3]=='*') break;
+		if(stk[z]=='E' && stk[z+1]=='+' && stk[z+2]=='T' && a[j+1]=='*') break;
+		if((stk[z]=='E' && stk[z+1]=='+' && stk[z+2]=='T'))
+		{
+			stk[z]='E';
+			stk[z+1]='\0';
+			stk[z+2]='\0';      
+			if(a[j+1]!='\0'){
+				printf("\n$%s\t%s$\t%s",stk,a,ac);
+				break;
+			}
+				
+			else
+				printf("\n$%s\t%s$\t%s",stk,a,"ACCEPT");
+			i=i-2;
+		}
+		if(stk[z]=='T' && stk[z+1]=='*')break;
+		if(stk[z]=='T' && a[j+1]=='*')break;	
+		if(stk[z]=='T')
+		{
+			stk[z]='E';
+			if(a[j+1]=='\0')
+				printf("\n$%s\t%s$\t%s",stk,a,"ACCEPT");
+			else if(a[j+1]=='+')
+				printf("\n$%s\t%s$\t%ssymbol",stk,a,act);
+		}
+	}
+}
+// 5=====================================================
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+
+char op[2], arg1[5], arg2[5], result[5];
+int main()
+{
+    FILE *fp1, *fp2;
+    fp1 = fopen("input.txt", "r");
+    fp2 = fopen("output.txt", "w");
+    while (!feof(fp1))
+    {
+        fscanf(fp1, "%s%s%s%s", result, arg1, op, arg2);
+        if (strcmp(op, "+") == 0)
+        {
+            fprintf(fp2, "\nMOV R0,%s", arg1);
+            fprintf(fp2, "\nADD R0,%s", arg2);
+            fprintf(fp2, "\nMOV %s,R0", result);
+        }
+
+        if (strcmp(op, "*") == 0)
+        {
+            fprintf(fp2, "\nMOV R0,%s", arg1);
+            fprintf(fp2, "\nMUL R0,%s", arg2);
+            fprintf(fp2, "\nMOV %s,R0", result);
+        }
+
+        if (strcmp(op, "-") == 0)
+        {
+            fprintf(fp2, "\nMOV R0,%s", arg1);
+            fprintf(fp2, "\nSUB R0,%s", arg2);
+            fprintf(fp2, "\nMOV %s,R0", result);
+        }
+
+        if (strcmp(op, "/") == 0)
+        {
+            fprintf(fp2, "\nMOV R0,%s", arg1);
+            fprintf(fp2, "\nDIV R0,%s", arg2);
+            fprintf(fp2, "\nMOV %s,R0", result);
+        }
+        if (strcmp(op, "=") == 0)
+        {
+            fprintf(fp2, "\nMOV R0,%s", arg1);
+            fprintf(fp2, "\nMOV %s,R0", result);
+        }
+    }
+    fclose(fp1);
+    fclose(fp2);
+}
+// 6a====================================
+%{
+#include<stdio.h>
+%}
+%%
+"/*"[^*/]*"*/" {;}
+"//" {;}
+%%
+int main(int argc,char **argv){
+FILE *f1,*f2;
+if(argc==3){
+f1=fopen(argv[1],"r");
+if(!f1){
+printf("File error\n");
+exit(1);
+}
+yyin=f1;
+f2 = fopen(argv[2],"w");
+if(!f2){
+printf("Error");
+exit(1);
+}
+yyout=f2;
+yylex(); 
+}
+return 0;
+}
+yywrap(){}
+
+//input.txt
+Void main()
+{
+/* this is a test Line*/
+//printf(“you get error in above line :-)”);
+}
+// 6b===================================================
+****LEX PART****
+%{
+#include<stdio.h>
+#include "y.tab.h"
+extern yylval;
+%}
+%%
+[ \t] ;
+[\+\-\*\/\=\<\>] {printf("operation is %s\n",yytext); return OP;}
+[0-9]+ {yylval=atoi(yytext);printf("number is %d\n",yylval); return DIGIT;}
+int|char|double|bool|float|void|for|do|while|if|else|return|"#include<"[a-zA-Z\.]*">" {printf("keyword is %s\n",yytext); return KEY;}
+[a-zA-Z0-9\*\[\]]+ {printf("identifier is %s\n",yytext); return ID;}
+. ;
+%%
+****YACC PART****
+%{
+#include<stdio.h>
+#include<stdlib.h>
+int id=0,dig=0,key=0,op=0;
+%}
+%token DIGIT ID KEY OP
+%%
+input: DIGIT input { dig++; }
+| ID input { id++; }
+| KEY input { key++; }
+| OP input { op++; }
+| DIGIT  { dig++; }
+| ID  { id++; }
+| KEY { key++; }
+| OP { op++; }
+ ;
+%%
+#include<stdio.h>
+extern int yylex();
+extern int yyparse();
+extern FILE *yyin;
+main() {
+FILE * myfile = fopen("in.c","r");
+if(!myfile){
+	printf("Can't open sam_iput.c!");
+	return -1;
+}
+yyin = myfile;
+yyparse();
+printf("numbers = %d\nkeywords = %d\nidentifiers =%d\noperators = %d\n",dig,key,id,op);
+}
+void yyerror(){
+exit(-1);
+}
+void yywrap(){}
+// 7======================================
+//Round Robin
+import java.util.Scanner;  
+public class RoundRobin  
+{  
+public static void main(String args[])  
+{  
+int n,i,qt,count=0,temp,sq=0,bt[],wt[],tat[],rem_bt[];  
+float awt=0,atat=0;  
+bt = new int[10];  
+wt = new int[10];  
+tat = new int[10];  
+rem_bt = new int[10];  
+Scanner s=new Scanner(System.in);  
+System.out.print("Enter the number of process (maximum 10) = ");  
+n = s.nextInt();  
+System.out.print("Enter the burst time of the process\n");  
+for (i=0;i<n;i++)  
+{  
+System.out.print("P"+i+" = ");   
+bt[i] = s.nextInt();  
+rem_bt[i] = bt[i];  
+}  
+System.out.print("Enter the quantum time: ");  
+qt = s.nextInt();  
+while(true)  
+{  
+for (i=0,count=0;i<n;i++)  
+{  
+temp = qt;  
+if(rem_bt[i] == 0)  
+{  
+count++;  
+continue;  
+}  
+if(rem_bt[i]>qt)  
+rem_bt[i]= rem_bt[i] - qt;  
+else  
+if(rem_bt[i]>=0)  
+{  
+temp = rem_bt[i];  
+rem_bt[i] = 0;  
+}  
+sq = sq + temp;  
+tat[i] = sq;  
+}  
+if(n == count)  
+break;  
+}  
+System.out.print("--------------------------------------------------------------------------------");  
+System.out.print("\nProcess\t      Burst Time\t       Turnaround Time\t          Waiting Time\n");  
+System.out.print("--------------------------------------------------------------------------------");  
+for(i=0;i<n;i++)  
+{  
+wt[i]=tat[i]-bt[i];  
+awt=awt+wt[i];  
+atat=atat+tat[i];  
+System.out.print("\n "+(i+1)+"\t "+bt[i]+"\t\t "+tat[i]+"\t\t "+wt[i]+"\n");  
+}  
+awt=awt/n;  
+atat=atat/n;  
+System.out.println("\nAverage waiting Time = "+awt+"\n");  
+System.out.println("Average turnaround time = "+atat);  
+}  
+} 
+//SJF
+// Java program to implement Shortest Remaining Time First
+// Shortest Remaining Time First (SRTF)
+
+class Process
+{
+	int pid; // Process ID
+	int bt; // Burst Time
+	int art; // Arrival Time
+	
+	public Process(int pid, int bt, int art)
+	{
+		this.pid = pid;
+		this.bt = bt;
+		this.art = art;
+	}
+}
+
+public class GFG
+{
+	static void findWaitingTime(Process proc[], int n,int wt[])
+	{
+		int rt[] = new int[n];
+		for (int i = 0; i < n; i++)
+			rt[i] = proc[i].bt;
+		int complete = 0, t = 0, minm = Integer.MAX_VALUE;
+		int shortest = 0, finish_time;
+		boolean check = false;
+		while (complete != n) {
+			for (int j = 0; j < n; j++)
+			{
+				if ((proc[j].art <= t) &&
+				(rt[j] < minm) && rt[j] > 0) {
+					minm = rt[j];
+					shortest = j;
+					check = true;
+				}
+			}
+			if (check == false) {
+				t++;
+				continue;
+			}
+			rt[shortest]--;
+			minm = rt[shortest];
+			if (minm == 0)
+				minm = Integer.MAX_VALUE;
+			if (rt[shortest] == 0) {
+				complete++;
+				check = false;
+				finish_time = t + 1;
+				wt[shortest] = finish_time-proc[shortest].bt-proc[shortest].art;
+				if (wt[shortest] < 0)
+					wt[shortest] = 0;
+			}
+			t++;
+		}
+	}
+	static void findTurnAroundTime(Process proc[], int n,int wt[], int tat[])
+	{
+		for (int i = 0; i < n; i++)
+			tat[i] = proc[i].bt + wt[i];
+	}
+	
+	static void findavgTime(Process proc[], int n)
+	{
+		int wt[] = new int[n], tat[] = new int[n];
+		int total_wt = 0, total_tat = 0;
+		findWaitingTime(proc, n, wt);
+		findTurnAroundTime(proc, n, wt, tat);
+		System.out.println("Processes " +" Burst time " +" Waiting time " +" Turn around time");
+		for (int i = 0; i < n; i++) {
+			total_wt = total_wt + wt[i];
+			total_tat = total_tat + tat[i];
+			System.out.println(" " + proc[i].pid + "\t\t"+ proc[i].bt + "\t\t " + wt[i]+ "\t\t" + tat[i]);
+		}
+		System.out.println("Average waiting time = " +(float)total_wt / (float)n);
+		System.out.println("Average turn around time = " +(float)total_tat / (float)n);
+	}
+	public static void main(String[] args)
+	{
+		Process proc[] = { new Process(1, 6, 1),
+							new Process(2, 8, 1),
+							new Process(3, 7, 2),
+							new Process(4, 3, 3)};
+		
+		findavgTime(proc, proc.length);
+	}
+}
+// 8==========================================
+// import required classes and packages  
+import java.util.*;   
+import java.io.*;   
+import java.util.Scanner;  
+  
+class BankersAlgoExample  
+{  
+  
+    static void findNeedValue(int needArray[][], int maxArray[][], int allocationArray[][], int totalProcess, int totalResources)  
+    {  
+        for (int i = 0 ; i < totalProcess ; i++){    // for each process  
+            for (int j = 0 ; j < totalResources ; j++){  //for each resource  
+                needArray[i][j] = maxArray[i][j] - allocationArray[i][j];  
+            }  
+        }  
+    }  
+  
+    static boolean checkSafeSystem(int processes[], int availableArray[], int maxArray[][], int allocationArray[][], int totalProcess, int totalResources)  
+    {  
+        int [][]needArray = new int[totalProcess][totalResources];  
+  
+        findNeedValue(needArray, maxArray, allocationArray, totalProcess, totalResources);  
+  
+        boolean []finishProcesses = new boolean[totalProcess];  
+  
+        int []safeSequenceArray = new int[totalProcess];  
+  
+        int []workArray = new int[totalResources];  
+          
+        for (int i = 0; i < totalResources ; i++)     
+            workArray[i] = availableArray[i];  
+  
+        int counter = 0;  
+          
+        while (counter < totalProcess)  
+        {  
+            boolean foundSafeSystem = false;  
+            for (int m = 0; m < totalProcess; m++)  
+            {  
+                if (finishProcesses[m] == false)        
+                {  
+                    int j;  
+                      
+                    for (j = 0; j < totalResources; j++)  
+                        if (needArray[m][j] > workArray[j])        
+                            break;  
+  
+                    if (j == totalResources)  
+                    {  
+                        for (int k = 0 ; k < totalResources ; k++)  
+                            workArray[k] += allocationArray[m][k];  
+  
+                        safeSequenceArray[counter++] = m;  
+  
+                        finishProcesses[m] = true;  
+  
+                        foundSafeSystem = true;  
+                    }  
+                }  
+            }  
+  
+            if (foundSafeSystem == false)  
+            {  
+                System.out.print("The system is not in the safe state because lack of resources");  
+                return false;  
+            }  
+        }  
+  
+        System.out.print("The system is in safe sequence and the sequence is as follows: ");  
+        for (int i = 0; i < totalProcess ; i++)  
+            System.out.print("P"+safeSequenceArray[i] + " ");  
+  
+        return true;  
+    }  
+  
+    public static void main(String[] args)  
+    {     
+        int numberOfProcesses, numberOfResources;  
+          
+        Scanner sc = new Scanner(System.in);  
+          
+        System.out.println("Enter total number of processes");  
+        numberOfProcesses = sc.nextInt();  
+          
+        System.out.println("Enter total number of resources");  
+        numberOfResources = sc.nextInt();  
+          
+        int processes[] = new int[numberOfProcesses];  
+        for(int i = 0; i < numberOfProcesses; i++){  
+            processes[i] = i;  
+        }  
+          
+        int availableArray[] = new int[numberOfResources];  
+        for( int i = 0; i < numberOfResources; i++){  
+            System.out.println("Enter the availability of resource"+ i +": ");  
+            availableArray[i] = sc.nextInt();  
+        }  
+          
+        int maxArray[][] = new int[numberOfProcesses][numberOfResources];  
+        for( int i = 0; i < numberOfProcesses; i++){  
+            for( int j = 0; j < numberOfResources; j++){  
+                System.out.println("Enter the maximum resource"+ j +" that can be allocated to process"+ i +": ");  
+                maxArray[i][j] = sc.nextInt();  
+            }  
+        }  
+          
+        int allocationArray[][] = new int[numberOfProcesses][numberOfResources];  
+        for( int i = 0; i < numberOfProcesses; i++){  
+            for( int j = 0; j < numberOfResources; j++){  
+                System.out.println("How many instances of resource"+ j +" are allocated to process"+ i +"? ");  
+                allocationArray[i][j] = sc.nextInt();  
+            }  
+        }  
+          
+        checkSafeSystem(processes, availableArray, maxArray, allocationArray, numberOfProcesses, numberOfResources);  
+    }  
+}  
+// 9================================================
+#include<stdio.h>
+#include<stdlib.h>
+void FIFO(char [],char [],int,int);
+void lru(char [],char [],int,int);
+int main()
+{
+	int ch,YN=1,i,l,f;
+	char F[10],s[25];
+	printf("\n\n\t Enter the no of empty frames:");
+	scanf("%d",&f);
+	printf("\n\n\t Enter the length of the string:");
+	scanf("%d",&l);
+	printf("\n\n\t Enter the string:");
+	scanf("%s",s);
+	for(i=0;i<f;i++)
+		F[i]=-1;
+	do
+	{
+		printf("\n\n\t ***** MENU *****");
+		printf("\n\n\t 1:FIFO\n\n\t2:LRU\n\n\t4:EXIT");
+		printf("\n\n\t Enter your choice:");
+		scanf("%d",&ch);
+		switch(ch)
+		{
+			case 1:for(i=0;i<f;i++)
+					F[i]=-1;
+				FIFO(s,F,l,f);
+				break;
+			case 2:for(i=0;i<f;i++)
+					F[i]=-1;
+				lru(s,F,l,f);
+				break;
+			case 3:exit(0);
+		}
+		printf("\n\n\t Do u want to continue IF YES PRESS 1 \n\n\t IF NO PRESS 0\t");
+		scanf("%d",&YN);
+	}while(YN==1);
+	return(0);
+}
+void FIFO(char s[],char F[],int l,int f)
+{
+	int i,j=0,k,flag=0,cnt=0;
+	printf("\n\t PAGE\t FRAMES \t FAULTS");
+	for(i=0;i<l;i++)
+	{
+		for(k=0;k<f;k++)
+		{
+			if(F[k]==s[i])
+				flag=1;
+		}
+		if(flag==0)
+		{
+			printf("\n\t%c\t",s[i]);
+			F[j]=s[i];
+			j++;
+			for(k=0;k<f;k++)
+			{
+				printf("%c",F[k]);
+			}
+			printf("\t Page fault %d",cnt);
+			cnt++;
+		}
+		else
+		{
+			flag=0;
+			printf("\n\t%c\t",s[i]);
+			for(k=0;k<f;k++)
+			{
+				printf("%c",F[k]);
+			}
+			printf("\t No page fault");
+		}
+		if(j==f)
+			j=0;
+	}
+}
+void lru(char s[],char F[],int l,int f)
+{
+	int i,j=0,k,m,flag=0,cnt=0,top=0;
+	printf("\n\t PAGE \t FRAMES \t FAULTS");
+	for(i=0;i<l;i++)
+	{
+		for(k=0;k<f;k++)
+		{
+			if(F[k]==s[i])
+			{
+				flag=1;
+				break;
+			}
+		}
+		printf("\n\t%c\t",s[i]);
+		if(j!=f && flag!=1)
+		{
+			F[top]=s[i];
+			j++;
+			if(j!=f)
+				top++;
+		}
+		else
+		{
+			if(flag!=1)
+			{
+				for(k=0;k<top;k++)
+				{
+					F[k]=F[k+1];
+				}
+				F[top]=s[i];
+			}
+			if(flag==1)
+			{
+				for(m=k;m<top;m++)
+				{
+					F[m]=F[m+1];
+				}
+				if(j!=f)
+				{
+					F[top-1]=s[i];
+				}
+				else
+					F[top]=s[i];
+			}
+		}
+		for(k=0;k<f;k++)
+		{
+			printf("%c",F[k]);
+		}
+		if(flag==0)
+		{
+			printf("\t Page fault %d",cnt);
+			cnt++;
+		}
+		else
+			printf("\t No page fault");
+		flag=0;
+	}
+}
