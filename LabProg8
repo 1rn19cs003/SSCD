@@ -1,117 +1,92 @@
-// import required classes and packages  
-import java.util.*;   
-import java.io.*;   
-import java.util.Scanner;  
-  
-class BankersAlgoExample  
-{  
-  
-    static void findNeedValue(int needArray[][], int maxArray[][], int allocationArray[][], int totalProcess, int totalResources)  
-    {  
-        for (int i = 0 ; i < totalProcess ; i++){    // for each process  
-            for (int j = 0 ; j < totalResources ; j++){  //for each resource  
-                needArray[i][j] = maxArray[i][j] - allocationArray[i][j];  
-            }  
-        }  
-    }  
-  
-    static boolean checkSafeSystem(int processes[], int availableArray[], int maxArray[][], int allocationArray[][], int totalProcess, int totalResources)  
-    {  
-        int [][]needArray = new int[totalProcess][totalResources];  
-  
-        findNeedValue(needArray, maxArray, allocationArray, totalProcess, totalResources);  
-  
-        boolean []finishProcesses = new boolean[totalProcess];  
-  
-        int []safeSequenceArray = new int[totalProcess];  
-  
-        int []workArray = new int[totalResources];  
-          
-        for (int i = 0; i < totalResources ; i++)     
-            workArray[i] = availableArray[i];  
-  
-        int counter = 0;  
-          
-        while (counter < totalProcess)  
-        {  
-            boolean foundSafeSystem = false;  
-            for (int m = 0; m < totalProcess; m++)  
-            {  
-                if (finishProcesses[m] == false)        
-                {  
-                    int j;  
-                      
-                    for (j = 0; j < totalResources; j++)  
-                        if (needArray[m][j] > workArray[j])        
-                            break;  
-  
-                    if (j == totalResources)  
-                    {  
-                        for (int k = 0 ; k < totalResources ; k++)  
-                            workArray[k] += allocationArray[m][k];  
-  
-                        safeSequenceArray[counter++] = m;  
-  
-                        finishProcesses[m] = true;  
-  
-                        foundSafeSystem = true;  
-                    }  
-                }  
-            }  
-  
-            if (foundSafeSystem == false)  
-            {  
-                System.out.print("The system is not in the safe state because lack of resources");  
-                return false;  
-            }  
-        }  
-  
-        System.out.print("The system is in safe sequence and the sequence is as follows: ");  
-        for (int i = 0; i < totalProcess ; i++)  
-            System.out.print("P"+safeSequenceArray[i] + " ");  
-  
-        return true;  
-    }  
-  
-    public static void main(String[] args)  
-    {     
-        int numberOfProcesses, numberOfResources;  
-          
-        Scanner sc = new Scanner(System.in);  
-          
-        System.out.println("Enter total number of processes");  
-        numberOfProcesses = sc.nextInt();  
-          
-        System.out.println("Enter total number of resources");  
-        numberOfResources = sc.nextInt();  
-          
-        int processes[] = new int[numberOfProcesses];  
-        for(int i = 0; i < numberOfProcesses; i++){  
-            processes[i] = i;  
-        }  
-          
-        int availableArray[] = new int[numberOfResources];  
-        for( int i = 0; i < numberOfResources; i++){  
-            System.out.println("Enter the availability of resource"+ i +": ");  
-            availableArray[i] = sc.nextInt();  
-        }  
-          
-        int maxArray[][] = new int[numberOfProcesses][numberOfResources];  
-        for( int i = 0; i < numberOfProcesses; i++){  
-            for( int j = 0; j < numberOfResources; j++){  
-                System.out.println("Enter the maximum resource"+ j +" that can be allocated to process"+ i +": ");  
-                maxArray[i][j] = sc.nextInt();  
-            }  
-        }  
-          
-        int allocationArray[][] = new int[numberOfProcesses][numberOfResources];  
-        for( int i = 0; i < numberOfProcesses; i++){  
-            for( int j = 0; j < numberOfResources; j++){  
-                System.out.println("How many instances of resource"+ j +" are allocated to process"+ i +"? ");  
-                allocationArray[i][j] = sc.nextInt();  
-            }  
-        }  
-          
-        checkSafeSystem(processes, availableArray, maxArray, allocationArray, numberOfProcesses, numberOfResources);  
-    }  
-}  
+#include <stdio.h>
+#include <stdlib.h>
+int main()
+{
+	int Max[10][10],need[10][10],alloc[10][10],avail[10],completed[10],safeSequence[10];
+	int p,r,i,j,process,count;
+	count = 0;
+	printf("Enter the no of processes : ");
+	scanf("%d",&p);
+	for(i=0;i<p;i++)
+		completed[i] = 0;
+	printf("\n\nEnter the no of resources : ");
+	scanf("%d",&r);
+	printf("\n\nEnter the Max Matrix for each process : ");
+	for(i=0;i<p;i++)
+	{
+		printf("\nFor process %d : ", i + 1);
+		for(j = 0; j < r; j++)
+			scanf("%d", &Max[i][j]);
+	}
+	printf("\n\nEnter the allocation for each process : ");
+	for(i = 0; i < p; i++)
+	{
+		printf("For process %d : ",i + 1);
+		for(j = 0; j < r; j++)
+			scanf("%d", &alloc[i][j]);
+	}
+	printf("\n\nEnter the Available Resources : ");
+	for(i = 0; i < r; i++)
+		scanf("%d", &avail[i]);
+	for(i = 0; i < p; i++)
+	{
+		for(j = 0; j < r; j++)
+			need[i][j] = Max[i][j] - alloc[i][j];
+	}
+	
+	do
+	{
+		printf("\n Max matrix:\tAllocation matrix:\n");
+		for(i = 0; i < p; i++)
+		{
+			for( j = 0; j < r; j++)
+				printf("%d ", Max[i][j]);
+			printf("\t\t");
+			for( j = 0; j < r; j++)
+				printf("%d ", alloc[i][j]);
+			printf("\n");
+		}
+		process = -1;
+		for(i = 0; i < p; i++)
+		{
+			if(completed[i] == 0)
+			{
+				process = i ;
+				for(j = 0; j < r; j++)
+				{
+					if(avail[j] < need[i][j])
+					{
+						process = -1;
+						break;
+					}
+				}
+			}
+			if(process != -1)
+				break;
+		}
+		if(process != -1)
+		{
+			printf("\nProcess %d runs to completion!", process + 1);
+			safeSequence[count] = process + 1;
+			count++;
+			for(j = 0; j < r; j++)
+			{
+				avail[j] += alloc[process][j];
+				alloc[process][j] = 0;
+				Max[process][j] = 0;
+				completed[process] = 1;
+			}
+		}
+	}
+	while(count != p && process != -1);
+	if(count == p)
+	{
+		printf("\nThe system is in a safe state!!\n");
+		printf("Safe Sequence : < ");
+		for( i = 0; i < p; i++)
+			printf("%d ", safeSequence[i]);
+		printf(">\n");
+	}
+	else
+		printf("\nThe system is in an unsafe state!!");
+}
