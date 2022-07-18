@@ -1,34 +1,19 @@
 %{
 #include<stdio.h>
+int sl=0;
+int ml=0;
 %}
 %%
-"/*"[^*/]*"*/" {;}
-"//" {;}
+"/*"[a-zA-Z0-9' '\t\n]+"*/"	ml++;
+"//".*	sl++;
 %%
-int main(int argc,char **argv){
-FILE *f1,*f2;
-if(argc==3){
-f1=fopen(argv[1],"r");
-if(!f1){
-printf("File error\n");
-exit(1);
-}
-yyin=f1;
-f2 = fopen(argv[2],"w");
-if(!f2){
-printf("Error");
-exit(1);
-}
-yyout=f2;
-yylex(); 
-}
-return 0;
-}
-yywrap(){}
 
-//input.txt
-Void main()
+main()
 {
-/* this is a test Line*/
-//printf(“you get error in above line :-)”);
+	yyin=fopen("f1.c","r");
+	yyout=fopen("f2.c","w");
+	yylex();
+	fclose(yyin);
+	fclose(yyout);
+	printf("\n Number of single line comments are = %d\n",sl); printf("\nNumber of multiline comments are =%d\n",ml);
 }
