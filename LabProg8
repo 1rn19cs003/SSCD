@@ -1,63 +1,110 @@
+package bankers;
 import java.util.*;
-public class Main
+public class bankers
 {
-	public static void main(String[] args) {
-		int finish[]=new int[6];
-		int alloc[][]=new int[6][4];
-		int need[][]=new int[6][4];
-		int maxi[][]=new int[6][4];
-		int avail[]=new int[4];
-		int cnt=5;
-		for(int i=1;i<6;i++)
-		finish[i]=0;
-		Scanner s=new Scanner(System.in);
-		System.out.println("Alloction");
-		for(int i=1;i<6;i++)
-		    for(int j=0;j<4;j++)
-		        alloc[i][j]=s.nextInt();
-		System.out.println("Max availabe");
-		for(int i=1;i<6;i++)
-		    for(int j=0;j<4;j++)
-		        maxi[i][j]=s.nextInt();
-		System.out.println("availability");
-		    for(int j=0;j<4;j++)
-		        avail[j]=s.nextInt();
-		for(int i=1;i<6;i++)
-		    for(int j=0;j<4;j++)
-		        need[i][j]=maxi[i][j]-alloc[i][j];
-		System.out.println("Need Resources");
-		for(int i=1;i<6;i++){
-		    for(int j=0;j<4;j++)
-		        System.out.print(need[i][j] + " ");
-		  System.out.println();
-		}
-		while(cnt>0)
-		{
-		    for(int i=1;i<6;i++)
-		    {
-		        boolean flag=true;
-		        if(finish[i]==0)
-		        {
-		            for(int j=0;j<4;j++)
-		            {
-		                if(need[i][j]>avail[j])
-		                {
-		                    flag=false;
-		                    break;
-		                }
-		            }
-		            if(flag==true)
-		            {
-		                for(int j=0;j<4;j++)
-		                avail[j]+=alloc[i][j];
-		              cnt--;
-		              finish[i]=1;
-		              System.out.println("Job done" +" "+i);
-		            }
-		        }
-		    }
-		}
-		for(int j=0;j<4;j++)
-		    System.out.println(avail[j]);
-	}
-}
+	static int n,m; 
+    static int need[][],max[][],alloc[][],avail[],safeSequence[];
+ 
+    public static void safeState()
+    {
+    	safeSequence =  new int[n];
+    int count=0;
+     
+    //visited array to find the already allocated process
+    boolean visited[] = new boolean[n];
+    for (int i = 0;i < n; i++)
+    {
+        visited[i] = false;
+    }
+         
+    //work array to store the copy of available resources
+    int work[] = new int[m];   
+    for (int i = 0;i < m; i++)
+    {
+        work[i] = avail[i];
+    }
+ 
+    while (count<n)
+    {
+        boolean flag = false;
+        for (int i = 0;i < n; i++)
+        {
+            if (visited[i] == false)
+             {
+            int j;
+            for (j = 0;j < m; j++)
+            {       
+                if (need[i][j] > work[j])
+                break;
+            }
+            if (j == m)
+            {
+               safeSequence[count++]=i;
+               visited[i]=true;
+               flag=true;
+                         
+                for (j = 0;j < m; j++)
+                {
+                work[j] = work[j]+alloc[i][j];
+                }
+            }
+             }
+        }
+        if (flag == false)
+        {
+            break;
+        }
+    }
+    if (count < n)
+    {
+        System.out.println("The System is UnSafe!");
+    }
+    else
+    {
+        //System.out.println("The given System is Safe");
+        System.out.println("Following is the SAFE Sequence");
+                for (int i = 0;i < n; i++)
+        {
+            System.out.print("P" + safeSequence[i]);
+            if (i != n-1)
+            System.out.print(" -> ");
+        }
+    }
+    }
+     
+
+ 
+    public static void main(String[] args)
+    { 
+        
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter number of processes");
+        n = sc.nextInt();
+        System.out.println("Enter number of resources");
+        m = sc.nextInt();
+        System.out.println("Enter allocation matrix");
+        alloc = new int[n][m];
+        for(int i=0;i<n;i++)
+        	for(int j=0;j<m;j++)
+        		alloc[i][j] = sc.nextInt();
+        System.out.println("Enter max matrix");
+        max = new int[n][m];
+        for(int i=0;i<n;i++)
+        	for(int j=0;j<m;j++)
+        		max[i][j] = sc.nextInt();
+          
+         System.out.println("Enter available resources");
+         avail = new int[m];
+         for(int i=0;i<m;i++)
+        	 avail[i] = sc.nextInt();
+         need = new int[n][m];
+         for (int i = 0;i < n; i++)
+             for (int j = 0;j < m; j++)
+             need[i][j] = max[i][j]-alloc[i][j];
+         safeState();
+              
+         }       
+         
+          
+
+    }
